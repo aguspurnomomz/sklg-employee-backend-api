@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"os" // <-- 1. Tambahkan import "os" di sini
 	"time"
 
 	"my-school-saas/database"
@@ -81,12 +82,10 @@ func main() {
 			"role":      role,
 		})
 	})
-
 	
 	api := r.Group("/api/v1")
 	api.Use(middleware.MultiTenancyAuthMiddleware())
 	{
-		// Contoh 1: Endpoint GET /employees dilindungi RBAC (Hanya SCHOOL_ADMIN & TEACHER yang boleh akses)
 		api.GET("/employees", middleware.RequireRoles("SCHOOL_ADMIN", "TEACHER"), func(c *gin.Context) {
 			schoolID := middleware.GetSchoolID(c)
 			role := middleware.GetRole(c)
@@ -130,5 +129,11 @@ func main() {
 		})
 	}
 
-	r.Run(":8080")
+	// 2. Ambil port dari environment variable Cloud Run, gunakan "8080" jika dijalankan lokal
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	r.Run(":" + port)
 }
