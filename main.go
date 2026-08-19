@@ -38,7 +38,7 @@ func CORSMiddleware() gin.HandlerFunc {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Info: Tidak menemukan file .env, menggunakan environment variable bawaan sistem (Cloud Run)")
+		log.Println("Info: Tidak menemukan file .env, menggunakan environment variable bawaan sistem")
 	}
 
 	database.ConnectDB()
