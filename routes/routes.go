@@ -229,13 +229,22 @@ func InitRoutes(r *gin.Engine) {
 			query := `DELETE FROM employees WHERE id = $1 AND school_id = $2`
 			commandTag, err := database.DB.Exec(context.Background(), query, employeeID, schoolID)
 			if err != nil || commandTag.RowsAffected() == 0 {
-				c.JSON(http.StatusNotFound, gin.H{"error": "Pegawai tidak ditemukan atau akses ditolak"})
+				c.JSON(http.StatusNotFound, gin.H{
+					"status":  false,
+					"message": "Pegawai tidak ditemukan atau akses ditolak",
+				})
 				return
 			}
 
+			var schoolName string
+			_ = database.DB.QueryRow(context.Background(), "SELECT name FROM schools WHERE id = $1", schoolID).Scan(&schoolName)
+
 			c.JSON(http.StatusOK, gin.H{
+				"status":      true,
 				"message":     "Data pegawai berhasil dihapus",
 				"employee_id": employeeID,
+				"school_id":   schoolID,
+				"school_name": schoolName,
 			})
 		})
 	}
