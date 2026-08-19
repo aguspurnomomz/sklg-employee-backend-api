@@ -1,11 +1,13 @@
 package main
 
 import (
+	"log"
 	"my-school-saas/database"
 	"my-school-saas/routes"
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func CORSMiddleware() gin.HandlerFunc {
@@ -34,6 +36,11 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Info: Tidak menemukan file .env, menggunakan environment variable bawaan sistem (Cloud Run)")
+	}
+
 	database.ConnectDB()
 
 	gin.SetMode(gin.ReleaseMode)

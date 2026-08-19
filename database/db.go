@@ -11,19 +11,24 @@ import (
 var DB *pgxpool.Pool
 
 func ConnectDB() {
+	// 1. Ambil URL dari Environment Variable
 	databaseURL := os.Getenv("DATABASE_URL")
+	
+	// 2. Jika kosong, hentikan aplikasi (jangan pernah tulis password di sini)
 	if databaseURL == "" {
-		databaseURL = "postgresql://postgres.akgivxaziyfyduidzvxk:SklGo2026Secure@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-	}
-
-	var err error
-	DB, err = pgxpool.New(context.Background(), databaseURL)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Gagal terhubung ke database: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Fatal Error: Environment variable DATABASE_URL tidak ditemukan!\n")
 		os.Exit(1)
 	}
 
-	// Test koneksi
+	// 3. Inisialisasi pool koneksi
+	var err error
+	DB, err = pgxpool.New(context.Background(), databaseURL)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Gagal membuat pool database: %v\n", err)
+		os.Exit(1)
+	}
+
+	// 4. Uji koneksi (Ping)
 	err = DB.Ping(context.Background())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Database tidak merespons: %v\n", err)
