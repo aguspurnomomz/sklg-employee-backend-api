@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var JwtSecret = []byte("KUNCI_RAHASIA_SUPER_AMAN_ANDA_123") // Sesuaikan dengan secret yang Anda gunakan
+var JwtSecret = []byte("KUNCI_RAHASIA_SUPER_AMAN_ANDA_123") 
 
 type AppClaims struct {
 	UserID   string `json:"user_id"`
@@ -17,7 +17,7 @@ type AppClaims struct {
 	jwt.RegisteredClaims
 }
 
-// Middleware Multi-Tenancy & Auth Dasar
+
 func MultiTenancyAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
@@ -45,7 +45,7 @@ func MultiTenancyAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Simpan data klaim ke context Gin agar bisa dipakai handler selanjutnya
+	
 		c.Set("user_id", claims.UserID)
 		c.Set("school_id", claims.SchoolID)
 		c.Set("role", claims.Role)
@@ -54,7 +54,7 @@ func MultiTenancyAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// Helper untuk mengambil School ID
+
 func GetSchoolID(c *gin.Context) string {
 	if val, exists := c.Get("school_id"); exists {
 		return val.(string)
@@ -62,7 +62,7 @@ func GetSchoolID(c *gin.Context) string {
 	return ""
 }
 
-// Helper untuk mengambil Role
+
 func GetRole(c *gin.Context) string {
 	if val, exists := c.Get("role"); exists {
 		return val.(string)
@@ -70,12 +70,12 @@ func GetRole(c *gin.Context) string {
 	return ""
 }
 
-// --- BARU: Middleware RBAC (Role-Based Access Control) ---
+
 func RequireRoles(allowedRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userRole := GetRole(c)
 
-		// Cek apakah role user ada di dalam daftar role yang diizinkan
+	
 		isAllowed := false
 		for _, role := range allowedRoles {
 			if userRole == role {
@@ -86,7 +86,7 @@ func RequireRoles(allowedRoles ...string) gin.HandlerFunc {
 
 		if !isAllowed {
 			c.JSON(http.StatusForbidden, gin.H{
-				"error": "Akses ditolak: Anda tidak memiliki hak akses (role) yang diperlukan",
+				"error": "Akses ditolak: Anda tidak memiliki hak akses (role)",
 			})
 			c.Abort()
 			return

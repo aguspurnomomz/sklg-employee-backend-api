@@ -13,8 +13,6 @@ var DB *pgxpool.Pool
 func ConnectDB() {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		// Menggunakan Transaction Pooler port 6543 dengan format user pooler yang tepat
-		// Format: postgres.[project-ref]:password@host:6543/postgres
 		databaseURL = "postgresql://postgres.akgivxaziyfyduidzvxk:SklGo2026Secure@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
 	}
 
@@ -32,5 +30,5 @@ func ConnectDB() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Berhasil terhubung ke database Supabase!")
+	fmt.Println("Berhasil terhubung ke database")
 }
