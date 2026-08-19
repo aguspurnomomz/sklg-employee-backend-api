@@ -88,13 +88,21 @@ func InitRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	api.Use(middleware.MultiTenancyAuthMiddleware())
 	{
+	
 		api.GET("/employees", middleware.RequireRoles("SCHOOL_ADMIN", "TEACHER"), func(c *gin.Context) {
 			schoolID := middleware.GetSchoolID(c)
 			role := middleware.GetRole(c)
 
+			var schoolName string
+			_ = database.DB.QueryRow(context.Background(), "SELECT name FROM schools WHERE id = $1", schoolID).Scan(&schoolName)
+
+			// 2. Query data pegawai
 			rows, err := database.DB.Query(context.Background(), "SELECT id, employee_number, full_name, gender, position_type FROM employees WHERE school_id = $1", schoolID)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal mengambil data pegawai"})
+				c.JSON(http.StatusInternalServerError, gin.H{
+					"status":  false,
+					"message": "Gagal mengambil data pegawai",
+				})
 				return
 			}
 			defer rows.Close()
@@ -115,11 +123,18 @@ func InitRoutes(r *gin.Engine) {
 				}
 			}
 
+			if employees == nil {
+				employees = []Employee{}
+			}
+
 			c.JSON(http.StatusOK, gin.H{
-				"message":   "Berhasil mengambil data pegawai",
-				"school_id": schoolID,
-				"role":      role,
-				"data":      employees,
+				"status":           true,
+				"message":          "Berhasil mengambil data pegawai",
+				"total_employees":  len(employees),
+				"school_id":        schoolID,
+				"school_name":      schoolName,
+				"role":             role,
+				"data":             employees,
 			})
 		})
 
