@@ -8,7 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var JwtSecret = []byte("KUNCI_RAHASIA_SUPER_AMAN_ANDA_123") 
+var JwtSecret = []byte("KUNCI_RAHASIA") 
 
 type AppClaims struct {
 	UserID   string `json:"user_id"`

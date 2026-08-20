@@ -15,8 +15,9 @@ func CORSMiddleware() gin.HandlerFunc {
 		origin := c.GetHeader("Origin")
 
 		allowedOrigins := map[string]bool{
-			"http://localhost:8000":          true,
-			"http://localhost:8080":          true, 
+			"http://localhost:8000":			true,
+			"http://localhost:8001":            true,
+			"http://localhost:8080":          	true, 
 		}
 
 		if allowedOrigins[origin] {
@@ -38,7 +39,7 @@ func CORSMiddleware() gin.HandlerFunc {
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Info: Tidak menemukan file .env, menggunakan environment variable bawaan sistem")
+		log.Println("Info: Tidak menemukan file .env")
 	}
 
 	database.ConnectDB()

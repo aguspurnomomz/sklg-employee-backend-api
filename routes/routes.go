@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -88,7 +89,6 @@ func InitRoutes(r *gin.Engine) {
 	api := r.Group("/api/v1")
 	api.Use(middleware.MultiTenancyAuthMiddleware())
 	{
-	
 		api.GET("/employees", middleware.RequireRoles("SCHOOL_ADMIN", "TEACHER"), func(c *gin.Context) {
 			schoolID := middleware.GetSchoolID(c)
 			role := middleware.GetRole(c)
@@ -96,7 +96,6 @@ func InitRoutes(r *gin.Engine) {
 			var schoolName string
 			_ = database.DB.QueryRow(context.Background(), "SELECT name FROM schools WHERE id = $1", schoolID).Scan(&schoolName)
 
-			// 2. Query data pegawai
 			rows, err := database.DB.Query(context.Background(), "SELECT id, employee_number, full_name, gender, position_type FROM employees WHERE school_id = $1", schoolID)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -128,25 +127,35 @@ func InitRoutes(r *gin.Engine) {
 			}
 
 			c.JSON(http.StatusOK, gin.H{
-				"status":           true,
-				"message":          "Berhasil mengambil data pegawai",
-				"total_employees":  len(employees),
-				"school_id":        schoolID,
-				"school_name":      schoolName,
-				"role":             role,
-				"data":             employees,
+				"status":          true,
+				"message":         "Berhasil mengambil data pegawai",
+				"total_employees": len(employees),
+				"school_id":       schoolID,
+				"school_name":     schoolName,
+				"role":            role,
+				"data":            employees,
 			})
 		})
 
-	
 		api.POST("/save_employee", middleware.RequireRoles("SCHOOL_ADMIN"), func(c *gin.Context) {
 			schoolID := middleware.GetSchoolID(c)
 
 			var req EmployeeRequest
-			if err := c.ShouldBindJSON(&req); err != nil {
+			decoder := json.NewDecoder(c.Request.Body)
+			decoder.DisallowUnknownFields() 
+
+			if err := decoder.Decode(&req); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
 					"status":  false,
-					"message": "Format input tidak valid",
+					"message": "Format tidak valid atau terdapat field yang tidak dikenal: " + err.Error(),
+				})
+				return
+			}
+
+			if req.FullName == "" || req.PositionType == "" {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": "Field 'full_name' dan 'position_type' wajib diisi",
 				})
 				return
 			}
@@ -169,7 +178,6 @@ func InitRoutes(r *gin.Engine) {
 			query := `INSERT INTO employees (id, school_id, employee_number, full_name, gender, position_type) VALUES ($1, $2, $3, $4, $5, $6)`
 			_, err := database.DB.Exec(context.Background(), query, newID, schoolID, req.EmployeeNumber, req.FullName, req.Gender, req.PositionType)
 			if err != nil {
-				println("SQL Insert Error:", err.Error())
 				c.JSON(http.StatusInternalServerError, gin.H{
 					"status":  false,
 					"message": "Gagal menyimpan data pegawai: " + err.Error(),
@@ -194,10 +202,22 @@ func InitRoutes(r *gin.Engine) {
 			employeeID := c.Param("id")
 
 			var req EmployeeRequest
-			if err := c.ShouldBindJSON(&req); err != nil {
+			decoder := json.NewDecoder(c.Request.Body)
+			decoder.DisallowUnknownFields() 
+
+			if err := decoder.Decode(&req); err != nil {
 				c.JSON(http.StatusBadRequest, gin.H{
 					"status":  false,
-					"message": "Format input tidak valid",
+					"message": "Format tidak valid atau terdapat field yang tidak dikenal: " + err.Error(),
+				})
+				return
+			}
+
+	
+			if req.FullName == "" || req.PositionType == "" {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"status":  false,
+					"message": "Field 'full_name' dan 'position_type' wajib diisi",
 				})
 				return
 			}
